@@ -8,4 +8,8 @@
         <RootNamespace>Engine.Physics</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Engine.Core\Engine.Core.csproj" />
+    </ItemGroup>
+
 </Project>
