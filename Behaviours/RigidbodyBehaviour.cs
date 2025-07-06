@@ -1,4 +1,5 @@
-﻿using Engine.Core.Behaviours;
+﻿using System.Numerics;
+using Engine.Core.Behaviours;
 using Engine.Core.Entities;
 using Engine.Core.Transform;
 using Engine.Physics.Components;
@@ -27,7 +28,8 @@ public class RigidbodyBehaviour(IPhysicsWorld physicsWorld) : IEntityBehaviour
             AllowSleep = rigidbody.AllowSleep,
             IsBullet = rigidbody.CollisionDetectionMode == CollisionDetectionMode.Continuous,
             BodyType = rigidbody.BodyType,
-            FixedRotation = rigidbody.FixedRotation
+            FixedRotation = rigidbody.FixedRotation,
+            MassData = new MassData { Mass = rigidbody.Mass, Center = Vector2.Zero }
         }, collider.Colliders);
         
         rigidbody.RuntimeBody = body;
@@ -35,7 +37,7 @@ public class RigidbodyBehaviour(IPhysicsWorld physicsWorld) : IEntityBehaviour
 
         if (rigidbody.BodyType == PhysicsBodyType.Kinematic)
         {
-            var subscription = entity.SubscribeComponentChange<TransformComponent>((newValue, _) =>
+            var subscription = entity.SubscribeComponentChange<WorldTransformComponent>((newValue, _) =>
             {
                 body.Position = newValue.Position;
                 body.Rotation = newValue.Rotation;
@@ -50,7 +52,7 @@ public class RigidbodyBehaviour(IPhysicsWorld physicsWorld) : IEntityBehaviour
         if (rigidbody.BodyType == PhysicsBodyType.Kinematic)
             return;
 
-        entity.Modify((ref TransformComponent transformComponent) =>
+        entity.Modify((ref WorldTransformComponent transformComponent) =>
         {
             if (rigidbody.RuntimeBody == null) throw new Exception("RigidBody has not been initialized");
             transformComponent.Position = rigidbody.RuntimeBody.Position;
