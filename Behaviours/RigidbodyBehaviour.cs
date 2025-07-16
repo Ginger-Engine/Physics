@@ -18,8 +18,8 @@ public class RigidbodyBehaviour(IPhysicsWorld physicsWorld) : IEntityBehaviour
 
         var body = physicsWorld.CreateBody(new BodyDefinition
         {
-            Position = transform.Position,
-            Rotation = transform.Rotation,
+            Position = transform.WorldTransform.Position,
+            Rotation = transform.WorldTransform.Rotation,
             LinearVelocity = rigidbody.LinearVelocity,
             AngularVelocity = rigidbody.AngularVelocity,
             LinearDamping = rigidbody.LinearDamping,
@@ -37,10 +37,10 @@ public class RigidbodyBehaviour(IPhysicsWorld physicsWorld) : IEntityBehaviour
 
         if (rigidbody.BodyType == PhysicsBodyType.Kinematic)
         {
-            var subscription = entity.SubscribeComponentChange<WorldTransformComponent>((newValue, _) =>
+            var subscription = entity.SubscribeComponentChange<TransformComponent>((e) =>
             {
-                body.Position = newValue.Position;
-                body.Rotation = newValue.Rotation;
+                body.Position = e.newValue.WorldTransform.Position;
+                body.Rotation = e.newValue.WorldTransform.Rotation;
             });
             _subscriptions.Add(entity, subscription);
         }
@@ -52,11 +52,16 @@ public class RigidbodyBehaviour(IPhysicsWorld physicsWorld) : IEntityBehaviour
         if (rigidbody.BodyType == PhysicsBodyType.Kinematic)
             return;
 
-        entity.Modify((ref WorldTransformComponent transformComponent) =>
+        entity.Modify((ref TransformComponent transformComponent) =>
         {
             if (rigidbody.RuntimeBody == null) throw new Exception("RigidBody has not been initialized");
-            transformComponent.Position = rigidbody.RuntimeBody.Position;
-            transformComponent.Rotation = rigidbody.RuntimeBody.Rotation;
+            Transform newWorldTransform = new()
+            {
+                Position = rigidbody.RuntimeBody.Position,
+                Rotation = rigidbody.RuntimeBody.Rotation,
+                Scale = transformComponent.WorldTransform.Scale,
+            };
+            transformComponent.WorldTransform = newWorldTransform; 
         });
     }
 
